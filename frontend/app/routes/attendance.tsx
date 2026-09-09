@@ -1188,7 +1188,7 @@ function WeeklyAttendanceGridView({
                     return null;
                   }}
                 />
-                <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="hours" fill="#10b981" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -1418,7 +1418,7 @@ function MonthlyAttendanceView({
                       return null;
                     }}
                   />
-                  <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="hours" fill="#10b981" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -1574,7 +1574,7 @@ function YearlyAttendanceView({
                     return null;
                   }}
                 />
-                <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="hours" fill="#10b981" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

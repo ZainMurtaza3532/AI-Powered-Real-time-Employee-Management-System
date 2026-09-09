@@ -73,19 +73,21 @@ export function meta({ }: Route.MetaArgs) {
 // ---------------------------------------------------------------------------
 
 const PIE_COLORS = [
-  "hsl(var(--primary))",
-  "hsl(142 76% 36%)",
-  "hsl(47 100% 50%)",
-  "hsl(0 84% 60%)",
-  "hsl(262 83% 58%)",
+  "#10b981", // Emerald
+  "#3b82f6", // Blue
+  "#f59e0b", // Amber
+  "#ef4444", // Rose/Red
+  "#8b5cf6", // Purple
+  "#06b6d4", // Cyan
+  "#ec4899", // Pink
 ];
 
 const TASK_STATUS_COLORS: Record<string, string> = {
-  todo: "hsl(220 9% 46%)",
-  in_progress: "hsl(var(--primary))",
-  in_review: "hsl(47 100% 50%)",
-  completed: "hsl(142 76% 36%)",
-  rejected: "hsl(0 84% 60%)",
+  todo: "#64748b",
+  in_progress: "#3b82f6",
+  in_review: "#f59e0b",
+  completed: "#10b981",
+  rejected: "#ef4444",
 };
 
 const ACTIVITY_ACTION_LABELS: Record<string, string> = {
@@ -321,11 +323,11 @@ function AttendancePie({
   ].filter((d) => d.value > 0);
 
   const ATTENDANCE_COLORS = [
-    "hsl(142 76% 36%)",
-    "hsl(0 84% 60%)",
-    "hsl(47 100% 50%)",
-    "hsl(var(--primary))",
-    "hsl(262 83% 58%)",
+    "#10b981", // Present (Emerald)
+    "#ef4444", // Absent (Red)
+    "#f59e0b", // Late (Amber)
+    "#3b82f6", // Half Day (Blue)
+    "#8b5cf6", // On Leave (Purple)
   ];
 
   return (
@@ -416,7 +418,7 @@ function LeaveByTypeBar({
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                 <Tooltip />
-                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -479,14 +481,14 @@ function DepartmentPerformanceBar({
                 <Bar
                   yAxisId="left"
                   dataKey="attendance"
-                  fill="hsl(var(--primary))"
+                  fill="#3b82f6"
                   name="Attendance %"
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar
                   yAxisId="right"
                   dataKey="members"
-                  fill="hsl(142 76% 36%)"
+                  fill="#10b981"
                   name="Members"
                   radius={[4, 4, 0, 0]}
                 />

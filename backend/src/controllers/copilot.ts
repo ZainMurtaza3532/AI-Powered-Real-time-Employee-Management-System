@@ -30,7 +30,7 @@ async function callGeminiForCopilot(
   }
 
   // Model endpoints
-  const models = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"];
+  const models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
   let lastError: Error | null = null;
 
   for (const model of models) {
@@ -413,7 +413,7 @@ export async function chatCopilot(req: Request, res: Response): Promise<void> {
       sick: 7,
       personal: 3,
     };
-    const userPendingLeaves = await Leave.countDocuments({ applicant: user._id, status: "pending" });
+    const userPendingLeaves = await Leave.countDocuments({ user: user._id, status: "pending" });
 
     // 5. Kudos and latest performance review
     const kudosCount = await Kudos.countDocuments({ recipient: user._id });

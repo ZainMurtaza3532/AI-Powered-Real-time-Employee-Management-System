@@ -344,7 +344,7 @@ function PerformanceChart({
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
               <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Bar dataKey="rate" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="rate" fill="#10b981" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -479,10 +479,11 @@ function PerformanceSkeleton() {
 // =========================================================================
 
 const PIE_COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--chart-2, 142 76% 36%))",
-  "hsl(var(--chart-3, 47 100% 50%))",
-  "hsl(var(--chart-4, 0 84% 60%))",
+  "#10b981", // Emerald
+  "#3b82f6", // Blue
+  "#f59e0b", // Amber
+  "#ef4444", // Red
+  "#8b5cf6", // Purple
 ];
 
 function LeaveStatsTab({
@@ -720,14 +721,14 @@ function MonthlyTrendChart({
                 <Bar
                   dataKey="approved"
                   stackId="a"
-                  fill="hsl(142 76% 36%)"
+                  fill="#10b981"
                   name="Approved"
                   radius={[0, 0, 0, 0]}
                 />
                 <Bar
                   dataKey="rejected"
                   stackId="a"
-                  fill="hsl(0 84% 60%)"
+                  fill="#ef4444"
                   name="Rejected"
                   radius={[4, 4, 0, 0]}
                 />
@@ -941,14 +942,14 @@ function DepartmentChart({
               <Bar
                 yAxisId="left"
                 dataKey="attendance"
-                fill="hsl(var(--primary))"
+                fill="#3b82f6"
                 name="Attendance %"
                 radius={[4, 4, 0, 0]}
               />
               <Bar
                 yAxisId="right"
                 dataKey="activities"
-                fill="hsl(var(--chart-2, 142 76% 36%))"
+                fill="#10b981"
                 name="Activities"
                 radius={[4, 4, 0, 0]}
               />

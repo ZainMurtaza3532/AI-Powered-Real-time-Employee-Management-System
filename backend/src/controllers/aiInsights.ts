@@ -47,7 +47,7 @@ async function callGeminiForInsight(prompt: string): Promise<GeminiInsightResult
     throw new Error("GEMINI_API_KEY not configured");
   }
 
-  const models = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash"];
+  const models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
   let lastError: Error | null = null;
 
   for (const model of models) {

@@ -126,22 +126,24 @@ function defaultKeyGenerator(req: Request): string {
 // Pre-configured rate limiters for common tiers
 // ---------------------------------------------------------------------------
 
-/** Strict — auth endpoints (e.g. login). 10 requests per 15 minutes. */
+const isDev = process.env.NODE_ENV !== "production";
+
+/** Strict — auth endpoints (e.g. login). 100 requests in dev, 20 in prod per 15 minutes. */
 export const strictRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: isDev ? 200 : 20,
   message: "Too many login attempts. Please try again later.",
 });
 
-/** Moderate — expensive compute operations (e.g. AI insights, reports). 5 requests per minute. */
+/** Moderate — expensive compute operations (e.g. AI insights, reports). 60 requests/min in dev, 20 in prod. */
 export const moderateRateLimit = rateLimit({
   windowMs: 60 * 1000,
-  max: 5,
+  max: isDev ? 120 : 20,
   message: "Too many requests to this resource. Please wait before trying again.",
 });
 
-/** Standard — general API endpoints. 100 requests per 15 minutes. */
+/** Standard — general API endpoints. 1000 requests in dev, 300 in prod per 15 minutes. */
 export const standardRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: isDev ? 1000 : 300,
 });
