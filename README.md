@@ -1,370 +1,243 @@
-# Employee Management System (EMS)
+# AI-Powered Real-Time Employee Management System (EMS)
 
-A full-stack employee management platform built with the MERN stack and React Router framework mode. Features role-based access control, AI-powered insights, and real-time notifications.
+An enterprise-grade, full-stack Employee Management System built with the modern MERN stack, React Router v8 (Framework Mode), and Google Gemini AI. Features role-based access control (RBAC), multi-horizon attendance timecards, automated payroll with digital PDF payslips, OKRs, peer Kudos recognition wall, predictive flight-risk intelligence, conversational EMS Copilot, and real-time Server-Sent Events (SSE).
 
-## Tech Stack
+---
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 19, React Router 8 (framework mode), TanStack Query, Tailwind CSS 4, Shadcn UI |
-| **Backend** | Express 5, MongoDB (Mongoose 9), JWT auth, Inngest (background jobs) |
-| **Email** | Resend |
-| **Runtime** | Bun |
-| **Deploy** | Vercel |
+## ⚡ Quick Demo Accounts (1-Click Instant Login)
 
-## Quickstart
+The application includes 1-click quick login buttons on the sign-in page to effortlessly explore each role perspective:
+
+| Role | Email | Password | Primary Capabilities |
+| :--- | :--- | :--- | :--- |
+| **👑 Admin** | `zainmurtazaadmin@gmail.com` | `zainmurtazaadmin` | Full organization control, payroll runs, user & department management, executive reports, AI insights, system audit log. |
+| **👔 Dept Head** | `sarah.chen@company.com` | `zainmurtazaadmin` | Department workload oversight, task delegation & review, leave approvals, expense approvals, flight-risk intelligence. |
+| **💻 Employee** | `hamza@gmail.com` | `zainmurtazaadmin` | Daily punch clock, task board, leave requests, PDF payslips, expense claims, OKRs, Kudos peer recognition wall. |
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | React 19, React Router 8 (Framework Mode), TanStack Query (React Query v5), Tailwind CSS 4, Shadcn UI, Lucide Icons, Recharts, jsPDF, html2canvas |
+| **Backend** | Express 5, Node.js / Bun, MongoDB Atlas (Mongoose 9), JWT (httpOnly Cookies), Inngest (Background AI Workflows), Server-Sent Events (SSE) |
+| **AI & LLM** | Google Gemini (Gemini 1.5 Flash, Gemini 2.0 Flash, Gemini 1.5 Pro) with live database grounding and local heuristic fallback engines |
+| **Email & Delivery** | Resend API (Transactional HTML emails, status alerts, leave decision notices) |
+| **Styling & Theme** | Modern OKLCH color palettes, glassmorphism, responsive sidebar navigation, dark mode support |
+| **Deployment** | Vercel (Serverless backend entry point + React Router SPA/SSR bundle) |
+
+---
+
+## 🚀 Quickstart & Setup
 
 ### Prerequisites
+- [Bun](https://bun.sh) v1.x or [Node.js](https://nodejs.org) v20+
+- MongoDB instance (MongoDB Atlas or local MongoDB)
 
-- [Bun](https://bun.sh) v1.x
-- MongoDB instance (local or Atlas)
-- Vercel account (for deployment)
-
-### Setup
-
+### 1. Clone & Install Dependencies
 ```bash
-# Clone and install
-git clone <repo-url>
-cd ems
-bun install --cwd backend
-bun install --cwd frontend
+git clone https://github.com/ZainMurtaza3532/AI-Powered-Real-time-Employee-Management-System.git
+cd AI-Powered-Real-time-Employee-Management-System
 
-# Backend setup
+# Install backend dependencies
+cd backend && npm install
+cd ..
+
+# Install frontend dependencies
+cd frontend && npm install
+cd ..
+```
+
+### 2. Configure Environment Variables
+
+**Backend (`backend/.env`):**
+```env
+PORT=5000
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174
+
+# MongoDB Atlas
+MONGO_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/ems
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/ems
+
+# Authentication Secrets
+JWT_SECRET=your_jwt_secret_key_here
+JWT_EXPIRES_IN=7d
+COOKIE_SECRET=your_cookie_secret_key_here
+
+# Initial Admin User
+ADMIN_NAME="Zain Murtaza admin"
+ADMIN_EMAIL=zainmurtazaadmin@gmail.com
+ADMIN_PASSWORD=zainmurtazaadmin
+
+# Google Gemini API
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Resend Email API
+RESEND_API_KEY=re_your_api_key_here
+```
+
+**Frontend (`frontend/.env`):**
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+### 3. Seed Enterprise Demo Data
+Populate realistic departments, users, attendance logs, tasks, payroll, expenses, OKRs, Kudos, and reviews:
+```bash
 cd backend
-cp .env.example .env   # fill in your values (see Environment Variables)
-bun run seed            # optional: populate demo data
-cd ..
-
-# Frontend setup
-cd frontend
-cp .env.example .env   # fill in your values
+npm run seed
 cd ..
 ```
 
-### Development
+### 4. Run Development Servers
+```bash
+# Terminal 1: Backend API (port 5000)
+cd backend && npm run dev
+
+# Terminal 2: Frontend Client (port 5173)
+cd frontend && npm run dev
+```
+
+Visit **`http://localhost:5173`** in your browser.
+
+---
+
+## 📦 Production Build & Typecheck
 
 ```bash
-# Backend (port 5000)
-cd backend && bun run dev
+# Typecheck backend and frontend
+npm run typecheck --prefix backend
+npm run typecheck --prefix frontend
 
-# Frontend (port 5173)
-cd frontend && bun run dev
+# Production build
+npm run build --prefix backend
+npm run build --prefix frontend
 ```
 
-### Production Build
+---
 
-```bash
-cd backend && bun run build   # TypeScript compile
-cd frontend && bun run build  # React Router build
-```
+## 🌟 Key Application Features
 
-### Typecheck
+### 1. 🤖 EMS Copilot & Workforce AI Intelligence
+- Conversational AI assistant grounded in live database telemetry (*attendance punch state, active task counts, leave balances, performance review scores, department stats*).
+- 1-Click quick draft generators for leave applications, review feedback, team announcements, and executive briefs.
+- Predictive retention & turnover Flight-Risk Intelligence model with factor breakdowns (overtime hours, review trends, leave patterns).
+- Resilient model cascade across Gemini 1.5 Flash, 2.0 Flash, and 1.5 Pro with structured heuristic fallback engine.
 
-```bash
-cd backend && bun run typecheck
-cd frontend && bun run typecheck
-```
+### 2. ⏱️ Attendance & Digital Timecards
+- 1-Click digital check-in and check-out with office/remote location tagging and notes.
+- Live shift stopwatch and 8-hour daily target progress bar.
+- Multi-horizon timecards:
+  - **Daily**: Shift stopwatch, hours gauge, location toggle.
+  - **Weekly**: 7-day visual matrix and daily hours histogram.
+  - **Monthly**: Visual heatmap calendar, attendance rate %, and instant CSV export.
+  - **Yearly**: 12-month annual comparison and audit records.
 
-## Environment Variables
+### 3. 💳 Payroll & Digital Salary Slips
+- Automated monthly payroll runs with earnings (*basic, housing, transport, medical*) and deductions (*tax, pension*).
+- Professional PDF Payslip generation with instant 1-click download.
+- Full compensation history and status tracking (*paid, pending*).
 
-### Backend
+### 4. 📋 Task Management & Kanban Board
+- Full lifecycle workflow: `Todo` &rarr; `In Progress` &rarr; `In Review` (with submission notes) &rarr; `Completed` (or rejected with rework notes).
+- Priority badges (*Urgent, High, Medium, Low*), due dates, and checklist subtasks.
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PORT` | Server port | `5000` |
-| `NODE_ENV` | `development` or `production` | `development` |
-| `CORS_ORIGIN` | Allowed frontend origins (comma-separated) | `http://localhost:5173,http://localhost:5174` |
-| `MONGO_URI` / `MONGODB_URI` | MongoDB Atlas connection string | `mongodb+srv://user:pass@cluster.mongodb.net/ems` |
-| `JWT_SECRET` | Secret key for signing authentication JWT tokens | `bffb9430e1e...` |
-| `JWT_EXPIRES_IN` | Session token expiry duration | `7d` |
-| `COOKIE_SECRET` | Secret for cookie signing and session protection | `d18df73ab4...` |
-| `GEMINI_API_KEY` | Google Gemini API key for EMS Copilot, AI Reviews & Insights | `AQ.Ab8RN6LFh5...` |
-| `RESEND_API_KEY` | Resend API key for transactional emails | `re_xxx` |
-| `ADMIN_NAME` | Default initial admin account name | `Admin` |
-| `ADMIN_EMAIL` | Default initial admin account email | `admin@ems.local` |
-| `ADMIN_PASSWORD` | Default initial admin account password | `change-me-123` |
+### 5. 🎯 Strategic OKRs & Goal Velocity
+- Company-wide, Department-level, and Individual Objectives.
+- Measurable key results with targets, current values, and interactive real-time progress sliders.
 
-### Frontend
+### 6. 🏆 Kudos & Social Recognition Wall
+- Peer-to-peer recognition badges (*"Problem Solver"*, *"Team Player"*, *"Speed Demon"*, *"Innovator"*, *"Culture Champion"*, *"Mentor"*, *"Customer Hero"*).
+- Real-time emoji reactions (`👏`, `❤️`, `🚀`, `💡`, `🔥`).
+- Monthly Gamification Leaderboard ranking top contributors.
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_API_URL` | Backend API URL | `http://localhost:5000/api` |
+### 7. 🌴 Leave Management & Custom Policies
+- Request time off (*Annual Vacation, Sick, Personal, Unpaid*).
+- Dynamic balance tracking with annual entitlements and rollover policies.
+- Two-tier approval pipeline (Department Heads & Executive Admins) with automated email notifications via Resend.
 
-## Project Structure
+### 8. 🧾 Expense Claims & Reimbursements
+- Category-based submissions (*Travel, Meals, Hardware, Software, Training, Office Supplies*) with receipt tracking.
+- Manager review, approval, rejection notes, and finance reimbursement status.
 
-```
-.
-├── backend/                        # Express 5 REST API & Inngest Functions
-│   ├── api/
-│   │   └── index.ts                # Vercel serverless entry point
-│   ├── src/
-│   │   ├── controllers/            # Business logic & route handlers (19 controllers)
-│   │   │   ├── activityLogs.ts
-│   │   │   ├── aiInsights.ts
-│   │   │   ├── announcements.ts
-│   │   │   ├── attendance.ts
-│   │   │   ├── auth.ts
-│   │   │   ├── copilot.ts
-│   │   │   ├── dashboard.ts
-│   │   │   ├── departments.ts
-│   │   │   ├── expenses.ts
-│   │   │   ├── feedback.ts
-│   │   │   ├── kudos.ts
-│   │   │   ├── leavePolicies.ts
-│   │   │   ├── leaves.ts
-│   │   │   ├── notifications.ts
-│   │   │   ├── okrs.ts
-│   │   │   ├── orgChart.ts
-│   │   │   ├── payroll.ts
-│   │   │   ├── performanceReviews.ts
-│   │   │   ├── reports.ts
-│   │   │   ├── tasks.ts
-│   │   │   └── users.ts
-│   │   ├── db/                     # MongoDB connection setup
-│   │   ├── inngest/                # Inngest client & AI workflow functions
-│   │   ├── lib/                    # Helpers (JWT, SSE, Email, Notifications, LeavePolicies, Pagination)
-│   │   ├── middlewares/            # Auth, RBAC & Rate Limiting middlewares
-│   │   ├── models/                 # Mongoose Data Schemas (17 models)
-│   │   │   ├── ActivityLog.ts
-│   │   │   ├── AiInsight.ts
-│   │   │   ├── Announcement.ts
-│   │   │   ├── Attendance.ts
-│   │   │   ├── Department.ts
-│   │   │   ├── Expense.ts
-│   │   │   ├── Feedback.ts
-│   │   │   ├── Kudos.ts
-│   │   │   ├── Leave.ts
-│   │   │   ├── LeavePolicy.ts
-│   │   │   ├── LeaveType.ts
-│   │   │   ├── Notification.ts
-│   │   │   ├── Okr.ts
-│   │   │   ├── Payroll.ts
-│   │   │   ├── PerformanceReview.ts
-│   │   │   ├── Task.ts
-│   │   │   └── User.ts
-│   │   ├── routes/                 # Express API routers (18 routers)
-│   │   ├── types/                  # Express type declarations
-│   │   ├── seed.ts                 # Database seeding script
-│   │   └── server.ts               # Express server bootstrap & middleware pipeline
-│   ├── .env.example                # Documented backend environment configuration
-│   ├── nodemon.json                # Development hot-reloading config
-│   ├── tsconfig.json               # Backend TypeScript configuration (ESNext/NodeNext)
-│   ├── tsconfig.build.json         # Vercel build TypeScript configuration
-│   └── vercel.json                 # Vercel deployment configuration
-│
-└── frontend/                       # React 19 + React Router 8 Modern App
-    ├── app/
-    │   ├── components/
-    │   │   ├── auth/               # Login page, Login form & RequireAuth
-    │   │   ├── globals/            # Reusable pagination & data search components
-    │   │   ├── layout/             # App shell, responsive sidebar & navigation
-    │   │   ├── notifications/      # Real-time SSE notification bell & drawer
-    │   │   └── ui/                 # Accessible Shadcn UI component library
-    │   ├── hooks/                  # TanStack Query & real-time custom hooks (25 hooks)
-    │   ├── lib/                    # API client, PDF/Excel export & utility helpers
-    │   ├── routes/                 # Application routes & layouts
-    │   │   ├── admin/              # Admin-only management routes
-    │   │   ├── ai-insights.tsx     # AI workforce intelligence
-    │   │   ├── announcements.tsx   # Company & department announcements
-    │   │   ├── attendance.tsx      # Attendance clock in/out & history
-    │   │   ├── copilot.tsx         # AI Copilot & Flight-Risk Assistant
-    │   │   ├── dashboard.tsx       # Real-time analytics dashboard
-    │   │   ├── expenses.tsx        # Expense claims & reimbursements
-    │   │   ├── feedback.tsx        # Employee feedback & resolution
-    │   │   ├── home.tsx            # Landing & authentication entrance
-    │   │   ├── kudos.tsx           # Social recognition & badges wall
-    │   │   ├── leaves.tsx          # Leave requests & balance manager
-    │   │   ├── okrs.tsx            # Strategic goals & key results
-    │   │   ├── org-chart.tsx       # Interactive organizational hierarchy tree
-    │   │   ├── payroll.tsx         # Salary slips & payroll downloads
-    │   │   ├── performance-reviews.tsx # Performance reviews
-    │   │   ├── profile.tsx         # Employee profile & security settings
-    │   │   ├── protected.tsx       # Auth-protected layout wrapper
-    │   │   └── tasks.tsx           # Task management & Kanban board
-    │   ├── app.css                 # Global styles, typography & CSS variables
-    │   ├── root.tsx                # App root layout, Providers & ErrorBoundary
-    │   ├── routes.ts               # React Router v8 type-safe route definitions
-    │   └── types.ts                # Application-wide TypeScript definitions
-    ├── .env.example                # Documented frontend environment configuration
-    ├── components.json             # Shadcn UI registry configuration
-    ├── Dockerfile                  # Production container build definition
-    ├── react-router.config.ts      # React Router build configuration
-    ├── tsconfig.json               # Frontend TypeScript configuration
-    └── vite.config.ts              # Vite 8 bundler configuration
-```
+### 9. 🌐 Interactive Organizational Hierarchy Tree
+- Visual hierarchy tree: Executive Leadership &rarr; Departments &rarr; Department Leads &rarr; Team Members.
+- Real-time active task and workload status indicators on employee cards.
 
-## Features
+### 10. 📊 Analytics, Reports & Audit Trail
+- Executive workforce analytics with Recharts SVG charts.
+- Export department activities and employee performance to PDF and Excel.
+- Full immutable Activity Log tracking user actions, logins, status changes, and approvals.
 
-### Authentication & Authorization
+---
 
-- JWT-based authentication with httpOnly cookies
-- Role-based access control: **admin**, **head**, **employee**
-- Permission-gated routes via middleware (`requireAuth`, `requireRole`)
+## 📡 API Overview
 
-### Employee Management
+| Method | Endpoint | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/login` | Session login & httpOnly cookie issuance | Public |
+| `POST` | `/api/auth/logout` | Session clearance | Public |
+| `GET` | `/api/auth/me` | Current authenticated user profile | Authenticated |
+| `POST` | `/api/copilot/chat` | AI Copilot conversational assistant | Authenticated |
+| `GET` | `/api/copilot/flight-risk` | Retention & flight-risk predictive analysis | Admin / Head |
+| `GET` | `/api/dashboard/analytics` | Organization & department analytics | Admin / Head |
+| `GET` | `/api/attendance/today` | Current day punch status & shift stopwatch | Authenticated |
+| `POST` | `/api/attendance/punch` | 1-Click check-in / check-out | Authenticated |
+| CRUD | `/api/tasks` | Task assignments, subtasks, reviews | Authenticated |
+| CRUD | `/api/leaves` | Leave requests, balances, approvals | Authenticated |
+| CRUD | `/api/payroll` | Salary slips & batch payroll runs | Authenticated / Admin |
+| CRUD | `/api/expenses` | Expense claims & reimbursement approvals | Authenticated / Admin |
+| CRUD | `/api/okrs` | Strategic Objectives & Key Results | Authenticated |
+| CRUD | `/api/kudos` | Peer recognitions & emoji reactions | Authenticated |
+| `GET` | `/api/org-chart` | Interactive organization hierarchy tree | Authenticated |
+| CRUD | `/api/announcements` | Company & department announcements | Admin / Head |
+| CRUD | `/api/performance-reviews` | 360 performance reviews & AI draft generator | Admin / Head |
+| CRUD | `/api/departments` | Department management & member assignment | Admin |
+| CRUD | `/api/users` | Employee account management & RBAC roles | Admin |
+| `GET` | `/api/reports` | Exportable workforce & performance reports | Admin / Head |
+| `GET` | `/api/activity-logs` | Immutable system audit log | Admin |
 
-- Full employee profiles (personal info, contact, employment details)
-- Department assignment and management
-- User CRUD with role-based permissions
+---
 
-### AI Copilot & Flight-Risk Intelligence
+## 🔒 Roles & Permissions Matrix
 
-- Conversational AI assistant with live database context (Gemini 2.5 Flash)
-- Quick prompt drafting for reviews, announcements, and leave applications
-- Predictive turnover & retention flight-risk intelligence for managers
+| Feature / Module | 💻 Employee | 👔 Dept Head | 👑 Admin |
+| :--- | :---: | :---: | :---: |
+| **Personal Profile & Dashboard** | ✅ | ✅ | ✅ |
+| **EMS Copilot AI** | ✅ | ✅ | ✅ |
+| **Flight-Risk Predictive Intelligence** | ❌ | ✅ | ✅ |
+| **Daily Punch Clock & Timecards** | ✅ | ✅ | ✅ |
+| **View Department Attendance** | ❌ | ✅ | ✅ |
+| **View Own Payslips & Download PDF** | ✅ | ✅ | ✅ |
+| **Manage Organization Payroll** | ❌ | ❌ | ✅ |
+| **Submit Expense Claims** | ✅ | ✅ | ✅ |
+| **Approve & Reimburse Expenses** | ❌ | ✅ | ✅ |
+| **Track OKRs & Strategic Goals** | ✅ | ✅ | ✅ |
+| **Give Kudos & Emoji Reactions** | ✅ | ✅ | ✅ |
+| **View Interactive Org Chart** | ✅ | ✅ | ✅ |
+| **Submit Leave Requests** | ✅ | ✅ | ✅ |
+| **Approve / Reject Leaves** | ❌ | ✅ | ✅ |
+| **Manage Leave Policies** | ❌ | ❌ | ✅ |
+| **Manage Tasks & Subtasks** | ✅ | ✅ | ✅ |
+| **Manage Departments** | ❌ | ❌ | ✅ |
+| **Manage Users & RBAC Roles** | ❌ | ❌ | ✅ |
+| **Post Announcements** | ❌ | ✅ | ✅ |
+| **AI Workforce Insights** | ❌ | ❌ | ✅ |
+| **System Activity Audit Trail** | ❌ | ❌ | ✅ |
 
-### Payroll & Digital Salary Slips
+---
 
-- Automated monthly payroll runs with 1-click execution
-- Detailed earnings (housing, transport, medical) & deductions (tax, pension) breakdown
-- Professional PDF Payslip generation & instant downloads
+## 🚀 Deployment to Vercel
 
-### Expense Claims & Reimbursements
+The application is pre-configured for deployment on Vercel:
+- **Backend Entry Point**: `backend/api/index.ts`
+- **Frontend Build**: React Router framework mode SSR / SPA bundle
+- **Environment Variables**: Configure `MONGODB_URI`, `JWT_SECRET`, `CORS_ORIGIN`, `GEMINI_API_KEY`, `RESEND_API_KEY`, and `NODE_ENV=production` in the Vercel project settings.
 
-- Category-based employee expense submission with receipt tracking
-- Manager review, approval, rejection with notes, and reimbursement workflows
+---
 
-### OKRs & Strategic Goals
-
-- Company, Department, and Individual Objectives
-- Key results with targets, current values, and interactive real-time progress sliders
-- Goal velocity analytics
-
-### Kudos & Social Recognition Wall
-
-- Peer-to-peer badge giving ("Problem Solver", "Team Player", "Speed Demon", "Innovator", etc.)
-- Real-time emoji reactions (👏, ❤️, 🚀, 💡, 🔥)
-- Monthly Gamification Leaderboard & badge rankings
-
-### Interactive Organizational Chart
-
-- Visual hierarchy tree: Executive Leadership → Departments → Heads → Team Members
-- Real-time active task and workload indicators on employee cards
-
-### Attendance
-
-- Clock in / clock out tracking
-- Daily attendance records with status (present, late, absent, half-day, on leave)
-- Attendance overview per month
-
-### Leave Management
-
-- Apply for leave with type, date range, and reason
-- Leave balance tracking per type (sick, vacation, personal, etc.)
-- Admin/head approval workflow
-- Configurable leave policies per department
-
-### Tasks
-
-- Create, assign, and track tasks
-- Status updates (todo, in-progress, review, done)
-- Priority levels (low, medium, high, urgent)
-
-### Performance Reviews
-
-- Admin-initiated performance reviews for employees
-- Rating system with written feedback
-- Gemini AI automated review generation
-
-### Feedback
-
-- Employee feedback submission & admin resolution
-
-### Announcements
-
-- Admin/Head announcements visible to employees
-
-### AI Insights
-
-- AI-powered analytics for workforce management
-- Admin dashboard with generated insights
-
-### Activity Logging
-
-- Full audit trail of user actions across the system
-
-### Dashboard
-
-- **Admin/Head**: department stats, leave overview, task metrics, attendance overview
-- **Employee**: personal attendance rate, leave balance, active tasks, completed tasks
-
-### Notifications
-
-- Real-time notification system for users via SSE
-
-## API Routes
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/api/auth/login` | Login | Public |
-| `POST` | `/api/auth/logout` | Logout | Public |
-| `GET` | `/api/auth/me` | Current user | Auth |
-| `POST` | `/api/copilot/chat` | AI HR Copilot assistant | Auth |
-| `GET` | `/api/copilot/flight-risk` | Flight risk & retention intelligence | Admin/Head |
-| CRUD | `/api/payroll` | Salary slips & batch payroll runs | Auth / Admin |
-| CRUD | `/api/expenses` | Expense claims & reimbursement approvals | Auth / Admin |
-| CRUD | `/api/okrs` | Objectives & Key Results | Auth |
-| CRUD | `/api/kudos` | Peer recognition feed & reactions | Auth |
-| `GET` | `/api/kudos/leaderboard` | Top recognized monthly champions | Auth |
-| `GET` | `/api/org-chart` | Organizational hierarchy structure | Auth |
-| CRUD | `/api/users` | User management | Admin |
-| CRUD | `/api/departments` | Department management | Admin |
-| CRUD | `/api/leaves` | Leave applications | Auth |
-| CRUD | `/api/attendance` | Attendance records | Auth |
-| CRUD | `/api/tasks` | Task management | Auth |
-| CRUD | `/api/announcements` | Announcements | Admin/Head |
-| CRUD | `/api/performance-reviews` | Performance reviews | Admin/Head |
-| CRUD | `/api/feedback` | Feedback | Auth |
-| CRUD | `/api/ai-insights` | AI insights | Admin |
-| `GET` | `/api/dashboard/analytics` | Admin/head dashboard | Admin/Head |
-| `GET` | `/api/dashboard/my` | Employee dashboard | Auth |
-| CRUD | `/api/notifications` | Notifications | Auth |
-| `GET` | `/api/reports` | Reports | Admin/Head |
-| `GET` | `/api/activity-logs` | Activity log | Admin |
-
-## Roles & Permissions
-
-| Feature | Employee | Head | Admin |
-|---------|----------|------|-------|
-| View own profile | ✅ | ✅ | ✅ |
-| EMS Copilot AI | ✅ | ✅ | ✅ |
-| Flight Risk Intelligence | ❌ | ✅ | ✅ |
-| View own payslips & PDF | ✅ | ✅ | ✅ |
-| Manage Payroll & Salaries | ❌ | ❌ | ✅ |
-| Submit Expense Claims | ✅ | ✅ | ✅ |
-| Approve & Reimburse Expenses | ❌ | ✅ | ✅ |
-| View/Update OKRs & Goals | ✅ | ✅ | ✅ |
-| Give Kudos & React | ✅ | ✅ | ✅ |
-| View Org Chart | ✅ | ✅ | ✅ |
-| Clock in/out | ✅ | ✅ | ✅ |
-| View own attendance | ✅ | ✅ | ✅ |
-| View all attendance | ❌ | ✅ | ✅ |
-| Apply for leave | ✅ | ✅ | ✅ |
-| Approve leaves | ❌ | ✅ | ✅ |
-| Manage leave policies | ❌ | ❌ | ✅ |
-| Create/update tasks | ✅ | ✅ | ✅ |
-| View department dashboard | ❌ | ✅ | ✅ |
-| Manage departments | ❌ | ❌ | ✅ |
-| Manage users | ❌ | ❌ | ✅ |
-| Create announcements | ❌ | ✅ | ✅ |
-| AI insights | ❌ | ❌ | ✅ |
-| Activity log | ❌ | ❌ | ✅ |
-
-## Deployment
-
-The project is configured for Vercel deployment:
-
-- **Backend**: `backend/api/index.ts` serves as the serverless function entry point
-- **Frontend**: Standard React Router Vercel build
-
-Ensure the following Vercel environment variables are set for production:
-
-- `MONGODB_URI`
-- `JWT_SECRET`
-- `CORS_ORIGIN` (your frontend domain)
-- `RESEND_API_KEY`
-- `NODE_ENV=production`
-
-## License
+## 📄 License
 
 Private — All rights reserved.
