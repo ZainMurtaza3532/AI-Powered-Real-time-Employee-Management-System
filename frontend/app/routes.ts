@@ -21,6 +21,7 @@ export default [
     ...prefix("admin", [
       route("users", "routes/admin/users.tsx"),
       route("departments", "routes/admin/departments.tsx"),
+      route("office-locations", "routes/admin/office-locations.tsx"),
       route("payroll", "routes/admin/payroll.tsx"),
       route("expenses", "routes/admin/expenses.tsx"),
       route("reports", "routes/admin/reports.tsx"),

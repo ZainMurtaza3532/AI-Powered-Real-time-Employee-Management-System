@@ -4,6 +4,7 @@ import {
   cancelLeave,
   createLeave,
   decideLeave,
+  getAllLeaves,
   listBalances,
   listLeaves,
   myBalance,
@@ -16,16 +17,18 @@ const router = Router();
 
 router.use(requireAuth);
 
-// Any authenticated user (admins may apply too).
+// Any authenticated user: apply, personal records, and balance
 router.post("/", createLeave);
 router.get("/mine", myLeaves);
 router.get("/balance", myBalance);
 router.patch("/:id/cancel", cancelLeave);
 
+// Role-based scoping: Admin (all), Head (department members), Employee (own)
+router.get("/", getAllLeaves);
+
 // Admin-only: oversight, decisions, and balance management.
 router.get("/balances", requireRole("admin"), listBalances);
 router.patch("/balances/:userId", requireRole("admin"), adjustBalance);
-router.get("/", requireRole("admin"), listLeaves);
 router.patch("/:id/decide", requireRole("admin"), decideLeave);
 
 export default router;

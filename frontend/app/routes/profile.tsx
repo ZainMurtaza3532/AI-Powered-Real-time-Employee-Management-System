@@ -27,7 +27,7 @@ import { getErrorMessage } from "@/lib/api";
 
 import type { Route } from "./+types/profile";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [{ title: "My Profile | Employee Management System" }];
 }
 

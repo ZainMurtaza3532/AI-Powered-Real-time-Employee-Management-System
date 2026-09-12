@@ -16,6 +16,7 @@ import { PerformanceReview } from "./models/PerformanceReview.js";
 import { Announcement } from "./models/Announcement.js";
 import { Feedback } from "./models/Feedback.js";
 import { ActivityLog } from "./models/ActivityLog.js";
+import { OfficeLocation } from "./models/OfficeLocation.js";
 
 async function seedDatabase(): Promise<void> {
   await connectDB();
@@ -936,7 +937,44 @@ async function seedDatabase(): Promise<void> {
     }
 
     // -------------------------------------------------------------------------
-    // 14. Activity Logs
+    // 14. Office Locations & IP Whitelist
+    // -------------------------------------------------------------------------
+    console.log("🏢 Seeding Office Locations & IP Whitelists...");
+    const sampleOfficeLocations = [
+      {
+        branchName: "Lahore Head Office",
+        ipAddresses: ["127.0.0.1", "::1", "192.168.1.1", "110.38.12.45", "182.180.160.10"],
+        isActive: true,
+        address: "Gulberg III, Main Boulevard, Lahore, Pakistan",
+      },
+      {
+        branchName: "Karachi Branch",
+        ipAddresses: ["127.0.0.1", "115.186.140.22", "202.163.112.80"],
+        isActive: true,
+        address: "Clifton Block 4, Karachi, Pakistan",
+      },
+      {
+        branchName: "Islamabad Tech Hub",
+        ipAddresses: ["127.0.0.1", "39.40.10.15", "175.107.200.5"],
+        isActive: true,
+        address: "Blue Area, Jinnah Avenue, Islamabad, Pakistan",
+      },
+    ];
+
+    for (const loc of sampleOfficeLocations) {
+      const existing = await OfficeLocation.findOne({ branchName: loc.branchName });
+      if (!existing) {
+        await OfficeLocation.create(loc);
+      } else {
+        existing.ipAddresses = loc.ipAddresses;
+        existing.isActive = loc.isActive;
+        existing.address = loc.address;
+        await existing.save();
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 15. Activity Logs
     // -------------------------------------------------------------------------
     console.log("📜 Seeding Activity Logs...");
     const sampleLogs = [

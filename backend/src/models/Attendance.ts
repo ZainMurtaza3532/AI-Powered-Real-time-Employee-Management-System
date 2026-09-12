@@ -25,6 +25,16 @@ export interface IAttendance extends mongoose.Document {
   markedBy: mongoose.Types.ObjectId;
   /** Optional notes (e.g. reason for late/absence). */
   notes?: string;
+  /** Attendance punch location category: "Office" or "Remote/WFH". */
+  locationType?: string;
+  /** Branch name if punched from a recognized whitelisted office location (e.g. Lahore, Karachi, Islamabad). */
+  branchName?: string;
+  /** Client IP address recorded at punch time. */
+  ipAddress?: string;
+  /** Flagged as anomalous if user claimed office attendance or punched from an unapproved IP. */
+  isAnomalous?: boolean;
+  /** Explanation for flagged anomaly. */
+  anomalyReason?: string;
 }
 
 const attendanceSchema = new Schema<IAttendance>(
@@ -36,6 +46,27 @@ const attendanceSchema = new Schema<IAttendance>(
     checkOut: { type: Date, default: null },
     markedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     notes: { type: String, trim: true },
+    locationType: {
+      type: String,
+      default: "Office",
+      trim: true,
+    },
+    branchName: {
+      type: String,
+      trim: true,
+    },
+    ipAddress: {
+      type: String,
+      trim: true,
+    },
+    isAnomalous: {
+      type: Boolean,
+      default: false,
+    },
+    anomalyReason: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );

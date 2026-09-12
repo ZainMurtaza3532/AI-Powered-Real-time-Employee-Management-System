@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LoaderCircle,
   LogOut,
+  MapPin,
   Megaphone,
   MessageSquareText,
   Network,
@@ -95,6 +96,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { title: "Manage Users", to: "/admin/users", icon: Users },
       { title: "Departments", to: "/admin/departments", icon: Building2 },
+      { title: "Office Locations", to: "/admin/office-locations", icon: MapPin },
       { title: "Payroll & Salaries", to: "/admin/payroll", icon: DollarSign },
       { title: "Expense Approvals", to: "/admin/expenses", icon: Receipt },
       { title: "Reports & Analytics", to: "/admin/reports", icon: BarChart3 },

@@ -31,6 +31,7 @@ import expensesRouter from "./routes/expenses.js";
 import okrsRouter from "./routes/okrs.js";
 import kudosRouter from "./routes/kudos.js";
 import orgChartRouter from "./routes/orgChart.js";
+import officeLocationsRouter from "./routes/officeLocations.js";
 
 const app = express();
 const PORT = process.env.PORT ?? 5000;
@@ -116,6 +117,7 @@ app.use("/api/expenses", expensesRouter);
 app.use("/api/okrs", okrsRouter);
 app.use("/api/kudos", kudosRouter);
 app.use("/api/org-chart", orgChartRouter);
+app.use("/api/office-locations", officeLocationsRouter);
 
 // --- Inngest serve endpoint ---
 app.use("/api/inngest", serve({ client: inngest, functions }));

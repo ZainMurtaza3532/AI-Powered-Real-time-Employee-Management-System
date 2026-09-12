@@ -65,7 +65,7 @@ const LEAVE_TYPES: LeaveType[] = ["annual", "sick", "personal", "unpaid"];
 
 const PAGE_SIZE = 10;
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [{ title: "My Leave Requests | Employee Management System" }];
 }
 

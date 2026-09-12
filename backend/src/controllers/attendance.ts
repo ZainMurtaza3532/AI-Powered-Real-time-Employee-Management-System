@@ -1,9 +1,11 @@
 import type { Request, Response } from "express";
 import mongoose from "mongoose";
 import { logActivity } from "../lib/activityLog.js";
-import { parsePagination } from "../lib/pagination.js";
+import { getIpAddress, isIpWhitelisted } from "../lib/getIpAddress.js";
+import { parsePagination, searchRegex } from "../lib/pagination.js";
 import { pushToUsers, createEvent } from "../lib/sse.js";
 import { Attendance, ATTENDANCE_STATUSES, type AttendanceStatus } from "../models/Attendance.js";
+import { OfficeLocation } from "../models/OfficeLocation.js";
 import { User } from "../models/User.js";
 
 interface MarkAttendanceBody {
@@ -132,6 +134,7 @@ export async function selfPunch(req: Request, res: Response): Promise<void> {
 
   const today = todayUtc();
   const now = new Date();
+  const clientIp = getIpAddress(req);
 
   let record = await Attendance.findOne({ user: user._id, date: today });
 
@@ -146,8 +149,38 @@ export async function selfPunch(req: Request, res: Response): Promise<void> {
     const isLateArrival = currentHour > 9 || (currentHour === 9 && currentMin > 30);
     const attendanceStatus: AttendanceStatus = isLateArrival ? "late" : "present";
 
-    const notePrefix = location === "remote" ? "[Remote / WFH] " : "[Office] ";
-    const fullNotes = (notePrefix + (notes ? notes.trim() : "")).trim();
+    // -----------------------------------------------------------------------
+    // Database-Driven IP Whitelist Verification
+    // -----------------------------------------------------------------------
+    // Query active branch locations from MongoDB
+    const activeLocations = await OfficeLocation.find({ isActive: true });
+
+    // Compare client's extracted IP with active branch IP whitelists
+    const matchedOffice = activeLocations.find((loc) =>
+      isIpWhitelisted(clientIp, loc.ipAddresses)
+    );
+
+    let detectedLocationType: string;
+    let matchedBranchName: string | undefined;
+    let isAnomalous = false;
+    let anomalyReason: string | undefined;
+
+    if (matchedOffice) {
+      // Whitelist Match: Recognized branch office IP
+      detectedLocationType = "Office";
+      matchedBranchName = matchedOffice.branchName;
+      isAnomalous = false;
+    } else {
+      // Whitelist Fallback: Do not reject punch, fallback to Remote/WFH and flag anomaly for manager review
+      detectedLocationType = "Remote/WFH";
+      isAnomalous = true;
+      anomalyReason = `Client IP ${clientIp} does not match any active branch office whitelist.`;
+    }
+
+    const locationPrefix = matchedBranchName
+      ? `[Office: ${matchedBranchName}]`
+      : `[Remote / WFH]`;
+    const fullNotes = [locationPrefix, `[IP: ${clientIp}]`, notes?.trim()].filter(Boolean).join(" ");
 
     if (!record) {
       record = new Attendance({
@@ -157,11 +190,21 @@ export async function selfPunch(req: Request, res: Response): Promise<void> {
         checkIn: now,
         markedBy: user._id,
         notes: fullNotes,
+        locationType: detectedLocationType,
+        branchName: matchedBranchName,
+        ipAddress: clientIp,
+        isAnomalous,
+        anomalyReason,
       });
     } else {
       record.status = attendanceStatus;
       record.checkIn = now;
       record.markedBy = user._id;
+      record.locationType = detectedLocationType;
+      record.branchName = matchedBranchName;
+      record.ipAddress = clientIp;
+      record.isAnomalous = isAnomalous;
+      record.anomalyReason = anomalyReason;
       if (fullNotes) record.notes = fullNotes;
     }
 
@@ -172,9 +215,16 @@ export async function selfPunch(req: Request, res: Response): Promise<void> {
       actor: user,
       targetType: "attendance",
       targetId: record._id,
-      targetName: `Self check-in for ${today.toISOString().slice(0, 10)}`,
-      details: { status: attendanceStatus, location, checkIn: now },
-      ip: req.ip,
+      targetName: `Self check-in for ${today.toISOString().slice(0, 10)} (${detectedLocationType})`,
+      details: {
+        status: attendanceStatus,
+        locationType: detectedLocationType,
+        branchName: matchedBranchName,
+        ipAddress: clientIp,
+        isAnomalous,
+        checkIn: now,
+      },
+      ip: clientIp,
     });
 
     pushToUsers(
@@ -183,6 +233,9 @@ export async function selfPunch(req: Request, res: Response): Promise<void> {
         action: "check_in",
         status: attendanceStatus,
         date: today.toISOString().slice(0, 10),
+        locationType: detectedLocationType,
+        branchName: matchedBranchName,
+        isAnomalous,
       })
     );
 
@@ -191,10 +244,20 @@ export async function selfPunch(req: Request, res: Response): Promise<void> {
       { path: "markedBy", select: "name" },
     ]);
 
+    const successMsg = matchedBranchName
+      ? `Checked in at ${matchedBranchName} (${attendanceStatus})`
+      : isAnomalous
+        ? `Checked in as ${attendanceStatus} (Remote / WFH flagged for review)`
+        : `Successfully checked in as ${attendanceStatus}`;
+
     res.json({
-      message: `Successfully checked in as ${attendanceStatus}`,
+      message: successMsg,
       record: populated.toJSON(),
       status: "checked_in",
+      locationType: detectedLocationType,
+      branchName: matchedBranchName,
+      isAnomalous,
+      clientIp,
     });
     return;
   }
@@ -211,6 +274,7 @@ export async function selfPunch(req: Request, res: Response): Promise<void> {
   }
 
   record.checkOut = now;
+  record.ipAddress = clientIp;
   if (notes) {
     record.notes = ((record.notes ? `${record.notes} | ` : "") + notes.trim()).trim();
   }
@@ -229,8 +293,12 @@ export async function selfPunch(req: Request, res: Response): Promise<void> {
     targetType: "attendance",
     targetId: record._id,
     targetName: `Self check-out for ${today.toISOString().slice(0, 10)}`,
-    details: { checkOut: now, hoursWorked: Math.round(diffHours * 10) / 10 },
-    ip: req.ip,
+    details: {
+      checkOut: now,
+      hoursWorked: Math.round(diffHours * 10) / 10,
+      ipAddress: clientIp,
+    },
+    ip: clientIp,
   });
 
   pushToUsers(
@@ -427,6 +495,150 @@ export async function myAttendance(req: Request, res: Response): Promise<void> {
     limit,
     offset,
   });
+}
+
+// ---------------------------------------------------------------------------
+// All attendance (Role-Based Data Scoping)
+// ---------------------------------------------------------------------------
+
+/**
+ * Role-Based Data Scoping: GET /api/attendance
+ * - Admin (role: 'admin'): sees ALL records across the entire company (empty query {}).
+ * - Department Head (role: 'head'): sees ONLY records of employees in their specific department.
+ * - Employee (role: 'employee'): sees ONLY their own personal records.
+ *
+ * Populates user details (name, email, avatar) and their department details.
+ */
+export async function getAllAttendances(req: Request, res: Response): Promise<void> {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+
+    const { limit, offset } = parsePagination(req);
+    const search = searchRegex(req.query.search);
+    const status = req.query.status;
+    const locationType = req.query.locationType;
+    const isAnomalous = req.query.isAnomalous;
+    const deptParam = req.query.department;
+
+    // Dynamic Mongoose query object
+    const query: Record<string, unknown> = {};
+
+    // 1. Role-Based Data Scoping Filter
+    if (user.role === "admin") {
+      // Admin: query stays empty {} (fetch all records across the company)
+      // Optional: Admin can optionally filter by a specific department
+      if (typeof deptParam === "string" && !isInvalidObjectId(deptParam)) {
+        const deptUsers = await User.find({ department: new mongoose.Types.ObjectId(deptParam) }).select("_id");
+        const deptUserIds = deptUsers.map((u) => u._id);
+        query.user = { $in: deptUserIds };
+      }
+    } else if (user.role === "head") {
+      // Department Head: ONLY see records of employees who belong to their department
+      if (!user.department) {
+        res.json({ attendance: [], total: 0, limit, offset });
+        return;
+      }
+      const departmentUsers = await User.find({ department: user.department }).select("_id");
+      const deptUserIds = departmentUsers.map((u) => u._id);
+      query.user = { $in: deptUserIds };
+    } else if (user.role === "employee") {
+      // Employee: ONLY see their own personal records
+      query.user = user._id;
+    } else {
+      // Fallback for any unassigned role: restrict to self
+      query.user = user._id;
+    }
+
+    // 2. Date filtering (single date or date range)
+    const singleDate = parseDateOnly(req.query.date);
+    if (singleDate) {
+      const nextDay = new Date(singleDate.getTime() + 86_400_000);
+      query.date = { $gte: singleDate, $lt: nextDay };
+    } else if (req.query.from || req.query.to) {
+      const from = parseDateOnly(req.query.from) ?? startOfCurrentMonth();
+      const to = parseDateOnly(req.query.to) ?? endOfCurrentMonth();
+      const toExclusive = new Date(to.getTime() + 86_400_000);
+      query.date = { $gte: from, $lt: toExclusive };
+    }
+
+    // 3. Status filter
+    if (status !== undefined && isAttendanceStatus(status)) {
+      query.status = status;
+    }
+
+    // 4. Location type filter
+    if (typeof locationType === "string" && locationType.trim()) {
+      query.locationType = locationType.trim();
+    }
+
+    // 5. Anomaly filter
+    if (isAnomalous !== undefined) {
+      query.isAnomalous = isAnomalous === "true";
+    }
+
+    // 6. Search filter (by employee name or email)
+    if (search) {
+      const matchingUsers = await User.find({
+        $or: [{ name: search }, { email: search }],
+      }).select("_id");
+      const matchedUserIds = matchingUsers.map((u) => u._id);
+
+      if (query.user && typeof query.user === "object" && "$in" in (query.user as Record<string, unknown>)) {
+        const allowedIds = (query.user as { $in: mongoose.Types.ObjectId[] }).$in.map((id) => id.toString());
+        const filteredIds = matchedUserIds.filter((id) => allowedIds.includes(id.toString()));
+        if (filteredIds.length === 0) {
+          res.json({ attendance: [], total: 0, limit, offset });
+          return;
+        }
+        query.user = { $in: filteredIds };
+      } else if (query.user) {
+        const currentUserId = (query.user as mongoose.Types.ObjectId).toString();
+        const matchesCurrent = matchedUserIds.some((id) => id.toString() === currentUserId);
+        if (!matchesCurrent) {
+          res.json({ attendance: [], total: 0, limit, offset });
+          return;
+        }
+      } else {
+        query.user = { $in: matchedUserIds };
+      }
+    }
+
+    // 7. Population & Query execution
+    let attendanceQuery = Attendance.find(query)
+      .populate({
+        path: "user",
+        select: "name email avatar department",
+        populate: {
+          path: "department",
+          select: "name description",
+        },
+      })
+      .populate("markedBy", "name email")
+      .sort({ date: -1, createdAt: -1 });
+
+    if (limit !== null) {
+      attendanceQuery = attendanceQuery.skip(offset).limit(limit);
+    }
+
+    const [attendance, total] = await Promise.all([
+      attendanceQuery,
+      Attendance.countDocuments(query),
+    ]);
+
+    res.json({
+      attendance: attendance.map((doc) => doc.toJSON()),
+      total,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error("Error in getAllAttendances:", error);
+    res.status(500).json({ error: "Failed to fetch attendance records" });
+  }
 }
 
 // ---------------------------------------------------------------------------

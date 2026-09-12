@@ -444,6 +444,16 @@ export interface Attendance {
   checkOut?: string | null;
   markedBy: Pick<User, "_id" | "name">;
   notes?: string;
+  /** Attendance location type: "Office" or "Remote/WFH". */
+  locationType?: string;
+  /** Office branch name (e.g. Lahore, Karachi, Islamabad) if matched against DB IP whitelist. */
+  branchName?: string;
+  /** Recorded client IP address. */
+  ipAddress?: string;
+  /** Flagged as anomalous when user checks in from an unauthorized IP. */
+  isAnomalous?: boolean;
+  /** Explanation for flagged anomaly. */
+  anomalyReason?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -1272,6 +1282,179 @@ export interface AIDraftAnnouncementResponse {
   };
 }
 
+export interface KudosLeaderboardResponse {
+  leaderboard: KudosLeaderboardItem[];
+  badgeStats: Array<{ _id: KudosBadge; count: number }>;
+}
+
+export interface OrgNodeUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: Role;
+  activeTasks: number;
+}
+
+export interface OrgDepartment {
+  _id: string;
+  name: string;
+  description?: string;
+  totalMembers: number;
+  heads: OrgNodeUser[];
+  members: OrgNodeUser[];
+}
+
+export interface OrgStructureResponse {
+  organization: {
+    name: string;
+    totalEmployees: number;
+    totalDepartments: number;
+  };
+  leadership: OrgNodeUser[];
+  departments: OrgDepartment[];
+  unassigned: OrgNodeUser[];
+}
+
+export interface FlightRiskProfile {
+  employeeId: string;
+  name: string;
+  email: string;
+  department: string;
+  riskScore: number;
+  riskLevel: "low" | "medium" | "high";
+  riskFactors: string[];
+  recommendation: string;
+  stats: {
+    lateOrAbsentDays: number;
+    overdueTasks: number;
+    feedbackCount: number;
+  };
+}
+
+export interface FlightRiskResponse {
+  totalAnalyzed: number;
+  highRiskCount: number;
+  mediumRiskCount: number;
+  lowRiskCount: number;
+  profiles: FlightRiskProfile[];
+}
+
+export interface OneOnOneAgendaResponse {
+  employee: {
+    id: string;
+    name: string;
+    email: string;
+    department: string;
+  };
+  stats: {
+    completedTasksCount: number;
+    pendingTasksCount: number;
+    attendanceRate: number;
+    latestScore: number;
+    kudosCount: number;
+    okrsCount: number;
+  };
+  agendaMarkdown: string;
+}
+
+export interface ExecutiveBriefingResponse {
+  healthIndex: number;
+  metrics: {
+    totalUsers: number;
+    departmentsCount: number;
+    attendancePace: number;
+    completedTasks: number;
+    inProgressTasks: number;
+    overdueTasks: number;
+    pendingLeaves: number;
+    pendingExpenseCount: number;
+    pendingExpenseAmount: number;
+    avgOkrProgress: number;
+    kudosCount: number;
+  };
+  briefingMarkdown: string;
+}
+
+export interface AttendanceAnomalyItem {
+  name: string;
+  email: string;
+  type: "overtime_burnout" | "frequent_late" | "missing_checkouts";
+  severity: "high" | "medium" | "low";
+  description: string;
+  recommendation: string;
+}
+
+export interface AttendanceAnomalyResponse {
+  totalScanned: number;
+  totalAnomalies: number;
+  burnoutRisksCount: number;
+  frequentLateCount: number;
+  missingCheckoutsCount: number;
+  anomalies: AttendanceAnomalyItem[];
+}
+
+/* ------------------------------------------------------------------ */
+/* Wave 2 AI Enhancements Types                                       */
+/* ------------------------------------------------------------------ */
+
+export interface AIDraftReviewInput {
+  employeeId: string;
+  period: string;
+  managerNotes?: string;
+}
+
+export interface AIDraftReviewResponse {
+  draft: {
+    employee: Pick<User, "_id" | "name" | "email">;
+    departmentName: string;
+    ratings: Array<{ category: string; score: number; comment: string }>;
+    overallScore: number;
+    strengths: string;
+    improvements: string;
+    summary: string;
+    goals: Array<{ title: string; description: string; dueDate?: string; status: GoalStatus }>;
+  };
+}
+
+export interface AIAnalyzeReceiptInput {
+  receiptText?: string;
+  vendor?: string;
+  amount?: number;
+  date?: string;
+  categoryHint?: string;
+}
+
+export interface AIAnalyzeReceiptResponse {
+  analysis: {
+    merchant: string;
+    amount: number;
+    currency: string;
+    category: ExpenseCategory;
+    date: string;
+    description: string;
+    itemizedItems: Array<{ name: string; price: number }>;
+    complianceRisk: "low" | "medium" | "high";
+    complianceNotes: string;
+    suggestedTitle: string;
+  };
+}
+
+export interface AIDraftAnnouncementInput {
+  topic: string;
+  tone?: "professional" | "enthusiastic" | "policy" | "alert";
+  keyPoints?: string;
+  departmentId?: string;
+}
+
+export interface AIDraftAnnouncementResponse {
+  draft: {
+    title: string;
+    body: string;
+    priority: "low" | "medium" | "high";
+    suggestedTags: string[];
+  };
+}
+
 export interface CompetencyRadarItem {
   skill: string;
   proficiencyScore: number;
@@ -1305,4 +1488,41 @@ export interface SkillsMatrixResponse {
   departments: DepartmentSkillsCluster[];
   successionCandidates: SuccessionCandidate[];
   strategicInsights: string[];
+}
+
+/** Office branch location with database-driven IP whitelist. */
+export interface OfficeLocation {
+  _id: string;
+  branchName: string;
+  ipAddresses: string[];
+  isActive: boolean;
+  address?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Body for creating/updating an office location. */
+export interface OfficeLocationInput {
+  branchName: string;
+  ipAddresses?: string[];
+  isActive?: boolean;
+  address?: string;
+}
+
+export interface OfficeLocationResponse {
+  officeLocation: OfficeLocation;
+  message?: string;
+}
+
+export interface OfficeLocationListResponse {
+  officeLocations: OfficeLocation[];
+  total: number;
+  limit: number | null;
+  offset: number;
+}
+
+export interface MyIpResponse {
+  ip: string;
+  isWhitelisted: boolean;
+  branchName?: string | null;
 }

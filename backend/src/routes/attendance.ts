@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   attendanceStats,
   departmentAttendance,
+  getAllAttendances,
   getAttendance,
   getTodayStatus,
   markAttendance,
@@ -15,6 +16,10 @@ import { requireRole } from "../middlewares/requireRole.js";
 const router = Router();
 
 router.use(requireAuth);
+
+// Any authenticated user: role-scoped list of attendances
+// (Admin: company-wide, Head: department members, Employee: personal records)
+router.get("/", getAllAttendances);
 
 // Any authenticated user: get today's punch status and active work timer.
 router.get("/today", getTodayStatus);

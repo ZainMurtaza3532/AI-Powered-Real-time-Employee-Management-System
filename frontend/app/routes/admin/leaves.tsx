@@ -81,7 +81,7 @@ const STATUS_FILTERS: { value: LeaveStatusFilter; label: string }[] = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [{ title: "Manage Leaves | Employee Management System" }];
 }
 
@@ -978,3 +978,4 @@ function EditPolicyDialog({
     </Dialog>
   );
 }
+

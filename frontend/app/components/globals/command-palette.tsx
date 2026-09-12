@@ -27,6 +27,7 @@ import {
   BarChart3,
   UserRound,
   Building2,
+  MapPin,
   FileText,
   History,
   Zap,
@@ -260,6 +261,12 @@ export function CommandPalette({ open: controlledOpen, onOpenChange: setControll
                 <CommandItem onSelect={() => handleSelect(() => navigate("/admin/departments"))} className="gap-3 py-2">
                   <Building2 className="h-4 w-4 text-primary" />
                   <span>Department Setup & Structure</span>
+                </CommandItem>
+              )}
+              {isAdmin && (
+                <CommandItem onSelect={() => handleSelect(() => navigate("/admin/office-locations"))} className="gap-3 py-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span>Branch Office IP Whitelisting</span>
                 </CommandItem>
               )}
               <CommandItem onSelect={() => handleSelect(() => navigate("/admin/reports"))} className="gap-3 py-2">

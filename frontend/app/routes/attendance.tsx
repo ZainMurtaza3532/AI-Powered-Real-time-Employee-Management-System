@@ -14,10 +14,12 @@ import {
   Download,
   Filter,
   Flame,
+  Globe,
   HeartPulse,
   Laptop,
   Layers,
   LoaderCircle,
+  MapPin,
   RefreshCw,
   Save,
   Search,
@@ -285,6 +287,16 @@ function PunchClockBanner() {
               {isCheckedIn && (
                 <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 animate-pulse">
                   🟢 On Shift
+                </Badge>
+              )}
+              {todayData?.record?.branchName && (
+                <Badge className="bg-primary/15 text-primary border-primary/30 gap-1 font-medium text-xs">
+                  <MapPin className="size-3" /> {todayData.record.branchName}
+                </Badge>
+              )}
+              {todayData?.record?.isAnomalous && (
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 gap-1 font-medium text-xs">
+                  <AlertTriangle className="size-3" /> Unverified IP (Remote)
                 </Badge>
               )}
               {isCheckedOut && (

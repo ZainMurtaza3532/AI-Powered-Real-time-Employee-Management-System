@@ -262,45 +262,148 @@ export async function myBalance(req: Request, res: Response): Promise<void> {
   res.json({ balance });
 }
 
-/** Admin-only: all requests, optionally filtered by status/employee and paginated. */
-export async function listLeaves(req: Request, res: Response): Promise<void> {
-  const status = req.query.status;
-  const { limit, offset } = parsePagination(req);
-  const search = searchRegex(req.query.search);
-
-  const filter: Record<string, unknown> = {};
-  if (status !== undefined) {
-    if (typeof status !== "string" || !LEAVE_STATUSES.includes(status as LeaveStatus)) {
-      res.status(400).json({
-        error: "status must be one of: pending, approved, rejected, cancelled",
-      });
+/**
+ * Role-Based Data Scoping: GET /api/leaves
+ * - Admin (role: 'admin'): sees ALL leave requests across the company (empty query {}).
+ * - Department Head (role: 'head'): sees ONLY leave requests from employees in their department.
+ * - Employee (role: 'employee'): sees ONLY their own personal leave requests.
+ *
+ * Populates user details (name, email, avatar) and their department details, plus decidedBy (name, email).
+ */
+export async function getAllLeaves(req: Request, res: Response): Promise<void> {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({ error: "Authentication required" });
       return;
     }
-    filter.status = status;
-  }
 
-  if (search) {
-    // Search over the populated employee — population can't be filtered directly,
-    // so resolve matching user ids first, then narrow the leaves by them.
-    const matchingUsers = await User.find({
-      $or: [{ name: search }, { email: search }],
-    }).select("_id");
-    const ids = matchingUsers.map((user) => user._id);
-    if (ids.length === 0) {
-      res.json({ leaves: [], total: 0, limit, offset });
-      return;
+    const { limit, offset } = parsePagination(req);
+    const search = searchRegex(req.query.search);
+    const status = req.query.status;
+    const leaveType = req.query.leaveType;
+    const deptParam = req.query.department;
+
+    // Dynamic Mongoose query object
+    const query: Record<string, unknown> = {};
+
+    // -------------------------------------------------------------------------
+    // 1. Role-Based Data Scoping Filter
+    // -------------------------------------------------------------------------
+    if (user.role === "admin") {
+      // Admin: query stays empty {} (fetch all records across the company)
+      // Optional: Admin can optionally filter by a specific department
+      if (typeof deptParam === "string" && !isInvalidObjectId(deptParam)) {
+        const deptUsers = await User.find({ department: new mongoose.Types.ObjectId(deptParam) }).select("_id");
+        const deptUserIds = deptUsers.map((u) => u._id);
+        query.user = { $in: deptUserIds };
+      }
+    } else if (user.role === "head") {
+      // Department Head: ONLY see records of employees who belong to their department
+      if (!user.department) {
+        res.json({ leaves: [], total: 0, limit, offset });
+        return;
+      }
+      const departmentUsers = await User.find({ department: user.department }).select("_id");
+      const deptUserIds = departmentUsers.map((u) => u._id);
+      query.user = { $in: deptUserIds };
+    } else if (user.role === "employee") {
+      // Employee: ONLY see their own personal records
+      query.user = user._id;
+    } else {
+      // Fallback for any unassigned role: restrict to self
+      query.user = user._id;
     }
-    filter.user = { $in: ids };
-  }
 
-  let query = Leave.find(filter).populate("user", "name email").sort({ createdAt: -1 });
-  if (limit !== null) {
-    query = query.skip(offset).limit(limit);
-  }
+    // -------------------------------------------------------------------------
+    // 2. Additional Query Filters (Status, Leave Type, Search)
+    // -------------------------------------------------------------------------
+    if (status !== undefined && status !== "all") {
+      if (typeof status !== "string" || !LEAVE_STATUSES.includes(status as LeaveStatus)) {
+        res.status(400).json({
+          error: `status must be one of: ${LEAVE_STATUSES.join(", ")}`,
+        });
+        return;
+      }
+      query.status = status;
+    }
 
-  const [leaves, total] = await Promise.all([query, Leave.countDocuments(filter)]);
-  res.json({ leaves: leaves.map((leave) => leave.toJSON()), total, limit, offset });
+    if (leaveType !== undefined && typeof leaveType === "string" && LEAVE_TYPES.includes(leaveType as LeaveType)) {
+      query.leaveType = leaveType;
+    }
+
+    if (search) {
+      // Search matching users by name or email
+      const matchingUsers = await User.find({
+        $or: [{ name: search }, { email: search }],
+      }).select("_id");
+      const matchedUserIds = matchingUsers.map((u) => u._id);
+
+      if (query.user && typeof query.user === "object" && "$in" in (query.user as Record<string, unknown>)) {
+        const allowedIds = (query.user as { $in: mongoose.Types.ObjectId[] }).$in.map((id) => id.toString());
+        const filteredIds = matchedUserIds.filter((id) => allowedIds.includes(id.toString()));
+
+        query.$or = [
+          { reason: search },
+          { leaveType: search },
+          ...(filteredIds.length > 0 ? [{ user: { $in: filteredIds } }] : []),
+        ];
+      } else if (query.user) {
+        const currentUserId = (query.user as mongoose.Types.ObjectId).toString();
+        const matchesCurrent = matchedUserIds.some((id) => id.toString() === currentUserId);
+
+        query.$or = [
+          { reason: search },
+          { leaveType: search },
+          ...(matchesCurrent ? [{ user: query.user }] : []),
+        ];
+      } else {
+        query.$or = [
+          { reason: search },
+          { leaveType: search },
+          ...(matchedUserIds.length > 0 ? [{ user: { $in: matchedUserIds } }] : []),
+        ];
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. Population & Query Execution
+    // -------------------------------------------------------------------------
+    let leavesQuery = Leave.find(query)
+      .populate({
+        path: "user",
+        select: "name email avatar department",
+        populate: {
+          path: "department",
+          select: "name description",
+        },
+      })
+      .populate("decidedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    if (limit !== null) {
+      leavesQuery = leavesQuery.skip(offset).limit(limit);
+    }
+
+    const [leaves, total] = await Promise.all([
+      leavesQuery,
+      Leave.countDocuments(query),
+    ]);
+
+    res.json({
+      leaves: leaves.map((doc) => doc.toJSON()),
+      total,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error("Error in getAllLeaves:", error);
+    res.status(500).json({ error: "Failed to fetch leave records" });
+  }
 }
+
+/** Backwards-compatible alias */
+export const listLeaves = getAllLeaves;
 
 /** Admin-only: approves or rejects a pending request. Approval deducts the balance. */
 export async function decideLeave(req: Request, res: Response): Promise<void> {
